@@ -16,9 +16,16 @@ public static class Divisors {
     /// </summary>
     /// <param name="number">The number to find the divisor</param>
     /// <returns>List of divisors</returns>
-    private static List<int> FindDivisors(int number) {
-        List<int> results = new();
-        // TODO problem 1
+    private static List<int> FindDivisors(int number) { // O(n) { O(n / 2 - 1) }
+
+        // why start the loop with 1 when you already know it will be included?
+        List<int> results = [1];
+
+        // why end at the number when you already have all the results at the half way point?
+        for (int i = 2, l = number / 2 + 1; i < l; i++)
+            if (number % i == 0)
+                results.Add(i);
+
         return results;
     }
 }
