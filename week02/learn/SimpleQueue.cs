@@ -11,6 +11,8 @@
         var value = queue.Dequeue();
         Console.WriteLine(value);
         // Defect(s) Found:
+        //      Dequeue returned the item at index 1, which in this case does not exist thus causing a crash.
+        //      Should return the first item added (q.Count - 1)
 
         Console.WriteLine("------------");
 
@@ -29,6 +31,8 @@
         value = queue.Dequeue();
         Console.WriteLine(value);
         // Defect(s) Found: 
+        //      The defects were already fixed by this point.
+        //      If they had not been fixed, dequeueing would have returned 300, 200, IndexOutOfRangeException.
 
         Console.WriteLine("------------");
 
@@ -45,6 +49,7 @@
             Console.WriteLine("I got the exception as expected.");
         }
         // Defect(s) Found: 
+        //      The defects were already fixed by this point.
     }
 
     private readonly List<int> _queue = new();
@@ -66,8 +71,9 @@
         if (_queue.Count <= 0)
             throw new IndexOutOfRangeException();
 
-        var value = _queue[1];
-        _queue.RemoveAt(1);
+        int lastIndex = _queue.Count - 1;
+        var value = _queue[lastIndex];
+        _queue.RemoveAt(lastIndex);
         return value;
     }
 }
