@@ -702,3 +702,290 @@ Trace.Assert(q.Dequeue() == 100);
 Trace.Assert(q.Dequeue() == 200);
 Trace.Assert(q.Dequeue() == 300);
 ```
+
+# Analyze
+## MysteryStack1
+```cs
+// MysteryStack1.cs
+public static class MysteryStack1 {
+    public static string Run(string text) {
+        var stack = new Stack();
+        foreach(var letter in text) stack.Push(letter);
+        var result = "";
+        while(stack.Count > 0) result += stack.Pop();
+        return result;
+    }
+}
+```
+
+```cs
+// MysteryStack1.cs (re-writen and unrolled)
+public static class MysteryStack1 {
+    public static string Run(string t) {
+        var s = new Stack();
+        
+        var l = t[0];   s.Push(l); //l='r0'; s=['r0']
+        l = t[1];       s.Push(l); //l='a1'; s=['r0','a1']
+        l = t[2];       s.Push(l); //l='c2'; s=['r0','a1','c2']
+        l = t[3];       s.Push(l); //l='e3'; s=['r0','a1','c2','e3']
+        l = t[4];       s.Push(l); //l='r4'; s=['r0','a1','c2','e3','c4']
+        l = t[5];       s.Push(l); //l='a5'; s=['r0','a1','c2','e3','c4','a5']
+        l = t[6];       s.Push(l); //l='r6'; s=['r0','a1','c2','e3','c4','a5','r6']
+
+        var r = "";
+        r += s.Pop(); // r="r";       s=['r0','a1','c2','e3','c4','a5','r6'] 
+        r += s.Pop(); // r="ra";      s=['r0','a1','c2','e3','c4','a5'] 
+        r += s.Pop(); // r="rac";     s=['r0','a1','c2','e3','c4'] 
+        r += s.Pop(); // r="race";    s=['r0','a1','c2','e3'] 
+        r += s.Pop(); // r="racec";   s=['r0','a1','c2'] 
+        r += s.Pop(); // r="raceca";  s=['r0','a1'] 
+        r += s.Pop(); // r="racecar"; s=['r0'] 
+
+        return r; // "racecar"
+    }
+}
+```
+
+```cs
+Call stack vars etc.:
+|
+Run | t="racecar";
+Run | var s=Stack(); // s=[]
+Run | s.Push(t[0]); // s=['r']
+Run | s.Push(t[1]); // s=['r','a']
+Run | s.Push(t[2]); // s=['r','a','c']
+Run | s.Push(t[3]); // s=['r','a','c','e']
+Run | s.Push(t[4]); // s=['r','a','c','e','c']
+Run | s.Push(t[5]); // s=['r','a','c','e','c','a']
+Run | s.Push(t[6]); // s=['r','a','c','e','c','a','r']
+Run | var r = ""; // r=""
+Run | r += s.Pop(); // s=['r','a','c','e','c','a','r']; r="r"
+Run | r += s.Pop(); // s=['r','a','c','e','c','a']; r="ra"
+Run | r += s.Pop(); // s=['r','a','c','e','c']; r="rac"
+Run | r += s.Pop(); // s=['r','a','c','e']; r="race"
+Run | r += s.Pop(); // s=['r','a','c']; r="racec"
+Run | r += s.Pop(); // s=['r','a']; r="raceca"
+Run | r += s.Pop(); // s=['r']; r="racecar"
+Run | return r; // r="racecar"
+|
+Run | t="stressed";
+Run | var s=Stack(); // s=[]
+Run | s.Push(t[0]); // s=['s']
+Run | s.Push(t[1]); // s=['s','t']
+Run | s.Push(t[2]); // s=['s','t','r']
+Run | s.Push(t[3]); // s=['s','t','r','e']
+Run | s.Push(t[4]); // s=['s','t','r','e','s']
+Run | s.Push(t[5]); // s=['s','t','r','e','s','s']
+Run | s.Push(t[6]); // s=['s','t','r','e','s','s','e']
+Run | s.Push(t[7]); // s=['s','t','r','e','s','s','e','d']
+Run | var r = ""; // r=""
+Run | r += s.Pop(); // s=['s','t','r','e','s','s','e','d']; r="d"
+Run | r += s.Pop(); // s=['s','t','r','e','s','s','e']; r="de"
+Run | r += s.Pop(); // s=['s','t','r','e','s','s']; r="des"
+Run | r += s.Pop(); // s=['s','t','r','e','s']; r="dess"
+Run | r += s.Pop(); // s=['s','t','r','e']; r="desse"
+Run | r += s.Pop(); // s=['s','t','r']; r="desser"
+Run | r += s.Pop(); // s=['s','t']; r="dessert"
+Run | r += s.Pop(); // s=['s']; r="desserts"
+Run | return r; // r="desserts"
+|
+Run | t="a nut for a jar of tuna";
+Run | var s=Stack(); // s=[]
+Run | s.Push(t[0]);  // s=['a']
+Run | s.Push(t[1]);  // s=['a',' ']
+Run | s.Push(t[2]);  // s=['a',' ','n']
+Run | s.Push(t[3]);  // s=['a',' ','n','u']
+Run | s.Push(t[4]);  // s=['a',' ','n','u','t']
+Run | s.Push(t[5]);  // s=['a',' ','n','u','t',' ']
+Run | s.Push(t[6]);  // s=['a',' ','n','u','t',' ','f']
+Run | s.Push(t[7]);  // s=['a',' ','n','u','t',' ','f','o']
+Run | s.Push(t[8]);  // s=['a',' ','n','u','t',' ','f','o','r']
+Run | s.Push(t[9]);  // s=['a',' ','n','u','t',' ','f','o','r',' ']
+Run | s.Push(t[10]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a']
+Run | s.Push(t[11]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ']
+Run | s.Push(t[12]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j']
+Run | s.Push(t[13]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a']
+Run | s.Push(t[14]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r']
+Run | s.Push(t[15]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ']
+Run | s.Push(t[16]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o']
+Run | s.Push(t[17]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f']
+Run | s.Push(t[18]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ']
+Run | s.Push(t[29]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t']
+Run | s.Push(t[20]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t','u']
+Run | s.Push(t[21]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t','u','n']
+Run | s.Push(t[22]); // s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t','u','n','a']
+Run | var r = "";   // r=""
+Run | r += s.Pop(); // r="a"                      ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t','u','n']
+Run | r += s.Pop(); // r="an"                     ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t','u']
+Run | r += s.Pop(); // r="anu"                    ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ','t']
+Run | r += s.Pop(); // r="anut"                   ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f',' ']
+Run | r += s.Pop(); // r="anut "                  ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o','f']
+Run | r += s.Pop(); // r="anut f"                 ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ','o']
+Run | r += s.Pop(); // r="anut fo"                ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r',' ']
+Run | r += s.Pop(); // r="anut fo "               ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a','r']
+Run | r += s.Pop(); // r="anut fo r"              ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j','a']
+Run | r += s.Pop(); // r="anut fo ra"             ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ','j']
+Run | r += s.Pop(); // r="anut fo raj"            ; s=['a',' ','n','u','t',' ','f','o','r',' ','a',' ']
+Run | r += s.Pop(); // r="anut fo raj "           ; s=['a',' ','n','u','t',' ','f','o','r',' ','a']
+Run | r += s.Pop(); // r="anut fo raj a"          ; s=['a',' ','n','u','t',' ','f','o','r',' ']
+Run | r += s.Pop(); // r="anut fo raj a "         ; s=['a',' ','n','u','t',' ','f','o','r']
+Run | r += s.Pop(); // r="anut fo raj a r"        ; s=['a',' ','n','u','t',' ','f','o']
+Run | r += s.Pop(); // r="anut fo raj a ro"       ; s=['a',' ','n','u','t',' ','f']
+Run | r += s.Pop(); // r="anut fo raj a rof"      ; s=['a',' ','n','u','t',' ']
+Run | r += s.Pop(); // r="anut fo raj a rof "     ; s=['a',' ','n','u','t']
+Run | r += s.Pop(); // r="anut fo raj a rof t"    ; s=['a',' ','n','u']
+Run | r += s.Pop(); // r="anut fo raj a rof tu"   ; s=['a',' ','n']
+Run | r += s.Pop(); // r="anut fo raj a rof tun"  ; s=['a',' ']
+Run | r += s.Pop(); // r="anut fo raj a rof tun " ; s=['a']
+Run | r += s.Pop(); // r="anut fo raj a rof tun a"; s=[]
+Run | return r; // r="anut fo raj a rof tun a"
+|
+```
+
+## MysteryStack2
+```cs
+public static class MysteryStack2 {
+    private static bool IsFloat(string text) {
+        return float.TryParse(text, out _);
+    }
+
+    public static float Run(string text) {
+        var stack = new Stack<float>();
+        foreach (var item in text.Split(' ')) {
+            if (item == "+" || item == "-" || item == "*" || item == "/") {
+                if (stack.Count < 2)
+                    throw new ApplicationException("Invalid Case 1!");
+
+                var op2 = stack.Pop();
+                var op1 = stack.Pop();
+                float res;
+                if (item == "+") {
+                    res = op1 + op2;
+                }
+                else if (item == "-") {
+                    res = op1 - op2;
+                }
+                else if (item == "*") {
+                    res = op1 * op2;
+                }
+                else {
+                    if (op2 == 0)
+                        throw new ApplicationException("Invalid Case 2!");
+
+                    res = op1 / op2;
+                }
+
+                stack.Push(res);
+            }
+            else if (IsFloat(item)) {
+                stack.Push(float.Parse(item));
+            }
+            else if (item == "") {
+            }
+            else {
+                throw new ApplicationException("Invalid Case 3!");
+            }
+        }
+
+        if (stack.Count != 1)
+            throw new ApplicationException("Invalid Case 4!");
+
+        return stack.Pop();
+    }
+}
+```
+
+```cs
+public static class MysteryStack2 {
+    private static bool IsFloat(string t) {
+        return float.TryParse(t, out _);
+    }
+    public static float Run(string t) {
+        var stack = new Stack<float>();
+        foreach (var i in t.Split(' ')) {
+            if("+-*/".includes(i)) {
+                if (stack.Count < 2) throw new ApplicationException("err1"); // not enough operands
+                var o2 = stack.Pop();
+                var o1 = stack.Pop();
+                float res;
+                if (i == "+") res = o1 + o2;
+                else if (i == "-") res = o1 - o2;
+                else if (i == "*") res = o1 * o2;
+                else if (o2 == 0) throw new ApplicationException("err2"); // divide-by-0
+                else res = o1 / o2;
+                stack.Push(res);
+            }
+            else if (IsFloat(i)) stack.Push(float.Parse(i));
+            else if (i == "") {}
+            else throw new ApplicationException("err3"); // invalid input (letter, unknown symbol)
+        }
+        if (stack.Count != 1) throw new ApplicationException("err4"); // not enough operators (leftover numbers)
+        return stack.Pop();
+    }
+}
+```
+```cs
+|
+Run | t="5 3 7 + *";
+Run | var stack = Stack<float>();   // stack=[]
+Run | var intrmdt = t.Split(' ');   // intrmdt=['5','3','7','+','*']
+Run | var i = intrmdt[0];           // i='5'
+Run | var prsdFlt = float.Parse(i); // prsdFlt=5
+Run | stack.Push(prsdFlt);          // stack=[5]
+Run | i = intrmdt[1];               // i='3'
+Run | prsdFlt = float.Parse(i);     // prsdFlt=3
+Run | stack.Push(prsdFlt);          // stack=[5,3]
+Run | i = intrmdt[2];               // i='7'
+Run | prsdFlt = float.Parse(i);     // prsdFlt=7
+Run | stack.Push(prsdFlt);          // stack=[5,3,7]
+Run | i = intrmdt[3];               // i='+'
+Run | var op2 = stack.Pop();        // op2=7
+Run | var op1 = stack.Pop();        // op1=3
+Run | float res = op1 + op2;        // r=10
+Run | stack.Push(res);              // stack=[5,10]
+Run | i = intrmdt[4];               // i='*'
+Run | op2 = stack.Pop();            // op2=10
+Run | op1 = stack.Pop();            // op1=5
+Run | res = op1 * op2;              // res=50
+Run | stack.push(res);              // stack=[50]
+Run | return stack.Pop();           // 50
+|
+Run | text = "6 2 + 5 3 - /"
+Run | var stack = Stack<float>();   // stack=[]
+Run | var intrmdt = t.Split(' ');   // intrmdt=['6','2','+','5','3','-','/']
+Run | var i = intVal[0];            // i='6'
+Run | var prsdFlt = float.Parse(i); // prsdFlt=6
+Run | stack.Push(prsdFlt);          // stack=[6]
+Run | i = intrmdt[1];               // i='2'
+Run | prsdFlt = float.Parse(i);     // prsdFlt=2
+Run | stack.Push(prsdFlt);          // stack=[6,2]
+Run | i = intrmdt[2];               // i='+'
+Run | var op2 = stack.Pop();        // op2=2
+Run | var op1 = stack.Pop();        // op1=6
+Run | float res = op1 + op2;        // res=8
+Run | stack.Push(res);              // stack=[8]
+Run | i = intrmdt[3];               // i='5'
+Run | prsdFlt = float.Parse(i);     // prsdFlt=5
+Run | stack.Push(prsdFlt);          // stack=[8,5]
+Run | i = intrmdt[4];               // i='3'
+Run | prsdFlt = float.Parse(i);     // prsdFlt=3
+Run | stack.Push(prsdFlt);          // stack=[8,5,3]
+Run | i = intrmdt[5];               // i='-'
+Run | var op2 = stack.Pop();        // op2=3
+Run | var op1 = stack.Pop();        // op1=5
+Run | float res = op1 - op2;        // res=2
+Run | stack.Push(res);              // stack=[8,2]
+Run | i = intrmdt[5];               // i='/'
+Run | var op2 = stack.Pop();        // op2=2
+Run | var op1 = stack.Pop();        // op1=8
+Run | float res = op1 / op2;        // res=4
+Run | stack.Push(res);              // stack=[4]
+Run | return stack.Pop();           // 4
+|
+```
+
+- Invalid Case 1!: "1 +"
+- Invalid Case 2!: "1 0 /"
+- Invalid Case 3!: "1 a +"
+- Invalid Case 4!: "
+
