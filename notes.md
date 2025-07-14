@@ -989,3 +989,198 @@ Run | return stack.Pop();           // 4
 - Invalid Case 3!: "1 a +"
 - Invalid Case 4!: "
 
+
+# Sets
+- unique items
+- O(1) lookup
+
+## common operations
+operation   code                perf    description
+add(val)    set.Add(val)        O(1)    adds "val" to set
+remove(val) set.Remove(val)     O(1)    removes "val" from set
+member(val) set.Contains(val)   O(1)    checks if "val" is in the set
+size()      set.Count           O(1)    number of items in set
+
+## example code: intersection & union
+```cs
+var set1 = new HashSet() {1,2,3,4,5};
+var set2 = new HashSet() {4,5,6,7,8};
+var set3 = set1.Intersect(set2).ToHashSet(); // {4,5}
+var set4 = set1.Union(set2).ToHashSet(); // {1,2,3,4,5,6,7,8}
+```
+
+# Maps
+- unique
+- key-value pairs
+
+## how to make:
+```cs
+var dict1 = new Dictionary<string, double>();
+var dict2 = new Dictionary<string, double>() {{"key1", 2.1}, {"key2", 2.3}};
+```
+
+## common operations
+operation       code                    perf    description
+put(key,val)    map.Add(key,val)        O(1)    adds or replaces row
+put(key,val)    map[key] = val          O(1)    gets value at key
+get(key)        map[key]                O(1)    gets value at key
+remove(key)     map.Remove(key)         O(1)    removes row at key
+member(key)     map.ContainsKey(key)    O(1)    checks if key in map
+size()          map.Count               O(1)    # of items in map
+
+## example code: objects are maps
+```cs
+class PersonDataMapping {
+    public string FirstName {get; set; }
+    public string LastName {get; set; }
+    public double Age {get; set; }
+}
+```
+
+## example code: complex map data
+```json
+{
+    "timestamp": 1584638006,
+    "message": "success",
+    "iss_position": {
+        "longitude": -149.9053,
+        "latitude": -35.9225
+    }
+}
+```
+```cs
+class SpaceStation {
+    public long Timestamp {get; set;}
+    public string Message {get; set; }
+    public Location IssPosition {get; set; }
+}
+class Location {
+    public double Longitude {get; set; }
+    public double Latitude {get; set; }
+}
+
+var spaceStation = JsonSerializer.Deserialize<SpaceStation>(json);
+var lon = spaceStation.IssPosition.Longitude;
+var lat = spaceStation.IssPosition.Latitude;
+Console.WriteLine($"Space station at Lon: {lon} Lat: {lat}");
+```
+
+```json
+{
+    "people": [
+        {"craft": "ISS", "name": "Andrew Morgan" },
+        {"craft": "ISS", "name": "Oleg Skripochka" },
+        {"craft": "ISS", "name": "Jessica Meir" }
+    ],
+    "message": "success",
+    "number": 3
+}
+```
+```cs
+class Space {
+    public Person[] People  {get; set;}
+    public string Message {get; set;}
+    public int Number {get; set;}
+}
+class Person {
+    public string Craft {get; set;}
+    public string Name {get; set;}
+}
+
+var space = JsonSerializer.Deserialize<Space>(json);
+foreach(var person in space.People) Console.WriteLine(person.Name);
+```
+
+## example code: building summary tables
+```cs
+var letters = new[] {'A', 'A', 'B', 'G', 'C', 'G', 'G', 'D', 'B'};
+var summaryTable = new Dictionary<char, int>();
+
+foreach(var letter in letters) {
+    if(!summaryTable.ContainsKey(letter)) summaryTable[letter] = 1;
+    else summaryTable[letter] += 1;
+}
+Console.WriteLine(string.Join(", ", summaryTable));
+// [A, 2], [B, 2], [G, 3], [C, 1], [D, 1]
+```
+
+# Articulating Answers to Technical Questions
+## instructions
+Consider the following scenario:
+> "Write code to find the first time in a string when a letter is duplicated."
+
+Answer each of the following:
+1. what are possible scenarios to consider? (for example, think of a few strings that you would want to try with the solution)
+2. what are some data structures that may be useful?
+  2.2 and what would their perf be?
+3. what are the boundry conditions that you should consider for this problem?
+4. outline a possible solution
+
+## my answers
+1. 
+  I believe good strings to check against would be strings that:
+    1. start with a double letter, such as "Aaron",
+    2. have multiple double letters, such as "solutions",
+    3. have the double letters at the ends of the string, such as "",
+    4. don't have any double letters at all, such as "consider"
+
+2. 
+  I believe a good data structure to use is a Set
+  It would have O(1) performance
+  The worst case would be where the only duplicates are the first and last letters of a long string
+
+3. 
+  Some edge cases to look out for include: 
+    1. duplicate letters with differing cases (A VS a),
+    2. empty strings and strings without letters ("", "  ", "1997"),
+    3. no double letters (case, consider, etc.)
+
+4. 
+  ```cs
+    // First we make the base class
+    class DuplicateLetterFinder {
+        // Then establish the root method. It will return the index of the duplicate letter, or -1 if there are no duplicates
+        public static int FindFirstDuplicate(string str) {
+            // Early return if the string only contains numbers
+            if (float.TryParse(str, out _)) return -1;
+    
+            // We then make a new HashSet of all letters to help with filtering out any numbers and punctuation
+            HashSet<char> letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+    
+            // And another new HashSet to hold the letter already checked
+            var set = new HashSet<char>();
+    
+            // Then we start iterating over the string. "i" will be the returned index of the double letter once found
+            for (int i = 0; i < str.Length; i++) {
+            
+                // We isolate and lowercase a single letter from the string
+                char l = char.ToLower(str[i]);
+    
+                // Return the index if the letter is already in the set, and if not, add it to the set if it's a letter 
+                if (set.Contains(l)) return i;
+                if (letters.Contains(l)) set.Add(l);
+            }
+    
+            // Finally, we return -1 if there are no duplicates
+            return -1;
+        }
+    
+        // Method to test with many different strings
+        public static void Run() {
+            string[] words = [
+                "Aaron", // 1 (a)
+                "solutions", // 6 (o)
+                "", // -1 (empty string)
+                "consider", // -1 (no duplicates)
+                "1997", // -1 (only numbers)
+                "  ", // -1 (only whitespace)
+                "...", // -1 (only punctuation)
+                "Hello World", // 3 (l)
+                "What is up? My spirits sure are!", // 15 (s)
+                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // 36 (A)
+            ];
+            foreach (string word in words) Console.WriteLine("{0}: {1}", word, FindFirstDuplicate(word));
+        }
+    } 
+  ```
+
