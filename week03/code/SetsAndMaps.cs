@@ -22,7 +22,21 @@ public static class SetsAndMaps
     public static string[] FindPairs(string[] words)
     {
         // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        HashSet<string> wordSet = [.. words];
+        HashSet<string> matches = new HashSet<string>();
+
+        foreach (string word in words)
+        {
+            string reversed = $"{word[1]}{word[0]}";
+            if (word == reversed) continue;
+            if (wordSet.Contains(reversed))
+            {
+                matches.Add($"{reversed} & {word}");
+                wordSet.Remove(word);
+                wordSet.Remove(reversed);
+            }
+        }
+        return matches.ToArray();
     }
 
     /// <summary>
@@ -43,6 +57,8 @@ public static class SetsAndMaps
         {
             var fields = line.Split(",");
             // TODO Problem 2 - ADD YOUR CODE HERE
+            string degree = fields[3];
+            degrees[degree] = degrees.TryGetValue(degree, out int v) ? ++v : 1;
         }
 
         return degrees;
@@ -67,7 +83,28 @@ public static class SetsAndMaps
     public static bool IsAnagram(string word1, string word2)
     {
         // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        Dictionary<char, int> availableLetters = new Dictionary<char, int>();
+
+        foreach (char c in word1)
+        {
+            if (c == ' ') continue;
+            char ch = char.ToLower(c);
+            availableLetters[ch] = availableLetters.TryGetValue(ch, out int v) ? ++v : 1;
+        }
+
+        foreach (char c in word2)
+        {
+            if (c == ' ') continue;
+            char ch = char.ToLower(c);
+            if (availableLetters.TryGetValue(ch, out int n))
+            {
+                availableLetters[ch] = n - 1;
+                if (availableLetters[ch] == 0) availableLetters.Remove(ch);
+            }
+            else return false;
+        }
+
+        return availableLetters.Count == 0;
     }
 
     /// <summary>
@@ -101,6 +138,42 @@ public static class SetsAndMaps
         // on those classes so that the call to Deserialize above works properly.
         // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
         // 3. Return an array of these string descriptions.
-        return [];
+
+        // set to false for a far more interesting output
+        bool boringMode = true;
+
+        if (boringMode) return [.. featureCollection.Features.Select(f => $"{f.Properties.Place} - Mag {f.Properties.Mag}")];
+
+        else
+        {
+            static DateTime date(long t) => DateTimeOffset.FromUnixTimeMilliseconds(t).LocalDateTime;
+            static string join(string joiner, object[] joinee) => string.Join(joiner, joinee);
+
+            Feature[] rawQuakes = featureCollection.Features;
+
+            int len = rawQuakes.Aggregate(0, (i, f) => i = Math.Max(i, f.Properties.Place.Length));
+
+            int i = 0;
+
+            List<string> quakes = [.. rawQuakes.Select(f => string.Format(
+                "\n {0,3}. {1} - Mag {2,-5} - Significance: {3,4}/1000",
+                ++i,
+                (date(f.Properties.Time).ToShortTimeString() + ", " + f.Properties.Place).PadRight(len + 7),
+                f.Properties.Mag,
+                f.Properties.Sig
+            ))];
+
+            Meta metadata = featureCollection.Metadata;
+            Console.WriteLine(
+                "\n========\n{0}\nTotal earthquakes listed: {1}\n========{2}\n========\nCaptured at: {3}\nAPI version: {4}\n=========\n",
+                metadata.Title,
+                metadata.Count,
+                join("- Magnitude: ", join("", [.. quakes]).Split("- Mag ")),
+                date(metadata.Generated),
+                metadata.Api
+            );
+
+            return [.. quakes];
+        }
     }
 }
