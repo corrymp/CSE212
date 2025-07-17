@@ -23,14 +23,13 @@ public class Basketball
         reader.TextFieldType = FieldType.Delimited;
         reader.SetDelimiters(",");
         reader.ReadFields(); // ignore header row
-        while (!reader.EndOfData) {
+        while (!reader.EndOfData)
+        {
             var fields = reader.ReadFields()!;
             var playerId = fields[0];
-            var points = int.Parse(fields[8]);
+            players[playerId] = (players.TryGetValue(playerId, out int p) ? p : 0) + int.Parse(fields[8]);
         }
 
-        Console.WriteLine($"Players: {{{string.Join(", ", players)}}}");
-
-        var topPlayers = new string[10];
+        Console.WriteLine("Top Player: Points\n {0}", string.Join("\n ", players.OrderByDescending(p => p.Value).ToArray()[..9].Select(p => string.Format($"{p.Key}: {p.Value}"))));
     }
 }
