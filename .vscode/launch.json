@@ -184,5 +184,18 @@
             "internalConsoleOptions": "neverOpen",
             "stopAtEntry": false
         },
+        
+        {
+            "name": "05 Learning Activity",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-week05-learn",
+            "program": "${workspaceFolder}/week05/learn/bin/Debug/net8.0/learn.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/week05/learn",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "stopAtEntry": false
+        },
     ]
 }

@@ -185,5 +185,18 @@
             "problemMatcher": "$msCompile"
         },
 
+        {
+            "label": "build-week05-learn",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/week05/learn/learn.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+
     ]
 }
